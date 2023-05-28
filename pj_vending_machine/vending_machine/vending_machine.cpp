@@ -498,18 +498,10 @@ public:
 
 int main()
 {
-    ifstream file2("money.txt", ios::in);
-    if (!file2.is_open()) {
-        cout << "create new file" << endl;
-        file2.open("money.txt", ios::out);
-    }
+    ifstream file2("money.txt", ios::app);
     file2.close();
 
-    ifstream file3("sales.txt", ios::in);
-    if (!file3.is_open()) {
-        cout << "create new file" << endl;
-        file3.open("sales.txt", ios::out);
-    }
+    ifstream file3("sales.txt", ios::app);
     file3.close();
 
     cout << "202211348 이창근 프로젝트" << endl;
