@@ -9,8 +9,7 @@
 #include <ctime>
 using namespace std;
 
-time_t timer = time(NULL);
-struct tm* t = localtime(&timer);
+
 
 class MoneyFileModifier {
 public:
@@ -32,7 +31,6 @@ public:
             }
             
         }
-        cout << token[0] << token[1] << token[2] << token[3] << endl;
         file.close();
     }
 
@@ -69,8 +67,53 @@ class salesFileModifier {
 public:
     salesFileModifier(const string& filename) : filename(filename) {}
 
+    bool Day() {
+        time_t timer = time(NULL);
+        struct tm* t = localtime(&timer);
+        ifstream file(filename, ios::in);
+        if (!file.is_open()) {
+            cout << "error" << endl;
+            return false;
+        }
+        while (getline(file, str)) {
+            stringstream ss(str);
+            string s;
+            int j = 0;
+            while (ss >> s) {
+                token[j] = stoi(s);
+                j++;
+            }
+            if (token[0] == t->tm_mon+1) {
+                if (token[1] == t->tm_mday) {
+                    if (token[2] == 1) {
+                        //cout << "coke" << endl;
+                        sale[0] = sale[0] + 1;
+                    }
+                    else if (token[2] == 2) {
+                        //cout << "cider" << endl;
+                        sale[1] = sale[1] + 1;
+                    }
+                    else if (token[2] == 3) {
+                        //cout << "milk" << endl;
+                        sale[2] = sale[2] + 1;
+                    }
+                    else {
+                        //cout << "energydrink" << endl;
+                        sale[3] = sale[3] + 1;
+                    }
+                }
+            }
+        }
+        printDay();
+        for (int n = 0; n < 4; n++) {
+            sale[n] = 0;
+        }
+        file.close();
+    }
+
+
     bool month(int i) {
-        ifstream file(filename);
+        ifstream file(filename, ios::in);
         if (!file.is_open()) {
             cout << "error" << endl;
             return false;
@@ -85,38 +128,84 @@ public:
             }
             if (token[0] == i) {
                 if (token[2] == 1) {
-                    cout << "coke" << endl;
+                    //cout << "coke" << endl;
+                    sale[0] = sale[0] + 1;
                 }
                 else if (token[2] == 2) {
-                    cout << "cider" << endl;
+                    //cout << "cider" << endl;
+                    sale[1] = sale[1] + 1;
                 }
                 else if (token[2] == 3) {
-                    cout << "milk" << endl;
+                    //cout << "milk" << endl;
+                    sale[2] = sale[2] + 1;
                 }
-                else
-                    cout << "energydrink" << endl;
+                else {
+                    //cout << "energydrink" << endl;
+                    sale[3] = sale[3] + 1;
+                }
             }
 
+        }
+        printMonth(i);
+        for (int n = 0; n < 4; n++) {
+            sale[n] = 0;
         }
         file.close();
     }
 
+    void printDay() {
+        cout << "coke 판매량: " << sale[0] << "개" << endl;
+        cout << "milk 판매량: " << sale[1] << "개" << endl;
+        cout << "cider 판매량: " << sale[2] << "개" << endl;
+        cout << "energydrink 판매량: " << sale[3] << "개" << endl;
+    }
+
+    void printMonth(int i) {
+        cout << i << "월 판매내역" << endl;
+        cout << "coke 판매량: " << sale[0] << "개" << endl;
+        cout << "milk 판매량: " << sale[1] << "개" << endl;
+        cout << "cider 판매량: " << sale[2] << "개" << endl;
+        cout << "energydrink 판매량: " << sale[3] << "개" << endl;
+
+    }
+
     bool putText(int i) {
-        ofstream file(filename);
-        if (!file.is_open()) {
-            cout << "error" << endl;
+        time_t timer = time(NULL);
+        struct tm* t = localtime(&timer);
+        if (i == -1) {
             return false;
         }
-        file << t->tm_mon + 1 << "\t" << t->tm_mday << "\t" << to_string(i) << "\t";
-        file.close();
+        else {
+            ifstream file1(filename, ios::in);
+            if (!file1.is_open()) {
+                cout << "error" << endl;
+                return false;
+            }
+            while (getline(file1, str)) {
+                text = text + str + "\n";
+
+            }
+            file1.close();
+            ofstream file(filename);
+            if (!file.is_open()) {
+                cout << "error" << endl;
+                return false;
+            }
+            file << text;
+            file << t->tm_mon + 1 << "\t" << t->tm_mday << "\t" << to_string(i) << "\t";
+            text = "";
+            file.close();
+        }
+        
     }
 
     int getToken(int i) {
         return token[i];
     }
 private:
-    int sale[3] = {0,0,0};
-    int token[3] = {};
+    int sale[4] = {0,0,0,0};
+    int token[4] = {};
+    string text;
     string filename;
     string line;
     string str;
@@ -155,50 +244,7 @@ public:
         }
     }
 
-    void setPrice(int p) {
-        int i;
-        cout << getPrice(p) << "의 값을 다시 정하세요." << endl;
-        cin >> i;
-        if (p == 1) {
-            coke = i;
-        }
-        else if (p == 2) {
-            milk = i;
-        }
-        else if (p == 3) {
-            cider = i;
-        }
-        else if (p == 4) {
-            energydrink = i;
-        }
-        else {
-            cout << "해당 음료는 없습니다." << endl;
-        }
-    }
 
-
-
-    void count(int p) {
-        if (p == 1) {
-            cokeP = cokeP + 1;
-        }
-        else if (p == 2) {
-            milkP = milkP + 1;
-        }
-        else if (p == 3) {
-            ciderP = ciderP + 1;
-        }
-        else if (p == 4) {
-            energydrinkP = energydrinkP + 1;
-        }
-    }
-
-    void getCount() {
-        cout << "coke 판매량 : " << cokeP << endl;
-        cout << "milk 판매량 : " << milkP << endl;
-        cout << "cider 판매량 : " << ciderP << endl;
-        cout << "energydrink 판매량 : " << energydrinkP << endl;
-    }
 };
 
 
@@ -213,9 +259,6 @@ public:
         manage m;
 
         cout << "자판기 운영을 시작합니다." << endl;
-    }
-    void month() {
-
     }
 
 
@@ -283,6 +326,7 @@ public:
             this->money[1] = this->money[1] - m10;
             this->money[2] = this->money[2] - m5;
             this->money[3] = this->money[3] - m1;
+            return -1;
         }
         return vev;
     }
@@ -297,7 +341,7 @@ public:
 
     int calc(int arr[4], int pay) {
         int i;
-        cout << "1. coke : " << getPrice(1) << "원11" << endl;
+        cout << "1. coke : " << getPrice(1) << "원" << endl;
         cout << "2. milk : " << getPrice(2) << "원" << endl;
         cout << "3. cider : " << getPrice(3) << "원" << endl;
         cout << "4. energydrink : " << getPrice(4) << "원" << endl;
@@ -441,12 +485,11 @@ public:
                     this->money[3] = this->money[3] - m1;
                 }
 
-                count(i);
                 canBuy = true;
             }
 
         }
-        getCount();
+        
         return i;
     }
 };
@@ -455,20 +498,38 @@ public:
 
 int main()
 {
+    ifstream file2("money.txt", ios::in);
+    if (!file2.is_open()) {
+        cout << "create new file" << endl;
+        file2.open("money.txt", ios::out);
+    }
+    file2.close();
+
+    ifstream file3("sales.txt", ios::in);
+    if (!file3.is_open()) {
+        cout << "create new file" << endl;
+        file3.open("sales.txt", ios::out);
+    }
+    file3.close();
+
+    cout << "202211348 이창근 프로젝트" << endl;
+    cout << "만약 터미널에 error가 출력된다면 money.txt파일과 sales.txt파일이 있는지 확인해주세요." << endl;
     machine machine;
     int menu;
-    MoneyFileModifier file ("C:/Users/redhe/source/repos/vending_machine/money.txt");
+
+    MoneyFileModifier file ("money.txt");
     file.appendText();
     machine.getMoney()[0] = file.getToken(0);
     machine.getMoney()[1] = file.getToken(1);
     machine.getMoney()[2] = file.getToken(2);
     machine.getMoney()[3] = file.getToken(3);
 
-    salesFileModifier file1("C:/Users/redhe/source/repos/vending_machine/sales.txt");
+
+    salesFileModifier file1("sales.txt");
+
     
     time_t timer = time(NULL);
     struct tm* t = localtime(&timer);
-    cout << "현재 달 : " << t->tm_mon + 1 << endl;
         
     while (1) {
         cout << "1 - 동전 보급" << endl;
@@ -482,24 +543,31 @@ int main()
         switch (menu)
         {
         case 1:
+            cout << endl;
             machine.supplyMoney();
             break;
         case 2:
+            cout << endl;
             file1.putText(machine.custMoney());
             break;
         case 3:
+            cout << endl;
             machine.printMoney();
             break;
         case 4:
-            
+            cout << endl;
+            cout << t->tm_mon+1 << "월" << t->tm_mday << "일 매출현황" << endl;
+            file1.Day();
             break;
         case 5:
+            cout << endl;
             int mon;
             cout << "몇월달 보고서를 출력하시겠습니까?" << endl;
             cin >> mon;
             file1.month(mon);
             break;
         case 6:
+            cout << endl;
             file.clearText();
             file.putText(machine.getMoney());
             cout << "종료합니다." << endl;
