@@ -7,8 +7,29 @@
 #include <sstream>
 #include <string>
 #include <ctime>
+#include <vector>
 using namespace std;
 
+class Product {
+public:
+    std::string name;
+    int price;
+
+    Product(const std::string& n, int p) : name(n), price(p) {}
+    std::string getName() const {
+        return name;
+    }
+    int getPrice() const {
+        return price;
+    }
+};
+
+const std::vector<Product> products = {
+    Product("Coke", 1700),
+    Product("Milk", 1300),
+    Product("Cider", 1600),
+    Product("Energy Drink", 2300)
+};
 
 
 class MoneyFileModifier {
@@ -67,7 +88,7 @@ class salesFileModifier {
 public:
     salesFileModifier(const string& filename) : filename(filename) {}
 
-    bool Day() {
+    bool reportTodaySales() {
         time_t timer = time(NULL);
         struct tm* t = localtime(&timer);
         ifstream file(filename, ios::in);
@@ -85,21 +106,15 @@ public:
             }
             if (token[0] == t->tm_mon+1) {
                 if (token[1] == t->tm_mday) {
-                    if (token[2] == 1) {
-                        //cout << "coke" << endl;
-                        sale[0] = sale[0] + 1;
-                    }
-                    else if (token[2] == 2) {
-                        //cout << "cider" << endl;
-                        sale[1] = sale[1] + 1;
-                    }
-                    else if (token[2] == 3) {
-                        //cout << "milk" << endl;
-                        sale[2] = sale[2] + 1;
-                    }
-                    else {
-                        //cout << "energydrink" << endl;
-                        sale[3] = sale[3] + 1;
+                    switch (token[2]) {
+                        case 1:
+                        case 2:
+                        case 3:
+                        case 4:
+                            cout << products[token[2] - 1].getName() << endl;
+                            sale[token[2] - 1]++;
+                        default:
+                            break;
                     }
                 }
             }
@@ -112,7 +127,7 @@ public:
     }
 
 
-    bool month(int i) {
+    bool reportMonthSales(int i) {
         ifstream file(filename, ios::in);
         if (!file.is_open()) {
             cout << "error" << endl;
@@ -127,24 +142,17 @@ public:
                 j++;
             }
             if (token[0] == i) {
-                if (token[2] == 1) {
-                    //cout << "coke" << endl;
-                    sale[0] = sale[0] + 1;
-                }
-                else if (token[2] == 2) {
-                    //cout << "cider" << endl;
-                    sale[1] = sale[1] + 1;
-                }
-                else if (token[2] == 3) {
-                    //cout << "milk" << endl;
-                    sale[2] = sale[2] + 1;
-                }
-                else {
-                    //cout << "energydrink" << endl;
-                    sale[3] = sale[3] + 1;
+                switch (token[2]) {
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                    cout << products[token[2] - 1].getName() << endl;
+                    sale[token[2] - 1]++;
+                default:
+                    break;
                 }
             }
-
         }
         printMonth(i);
         for (int n = 0; n < 4; n++) {
@@ -169,34 +177,21 @@ public:
 
     }
 
-    bool putText(int i) {
+    bool saveSale(int i) {
         time_t timer = time(NULL);
         struct tm* t = localtime(&timer);
         if (i == -1) {
             return false;
         }
         else {
-            ifstream file1(filename, ios::in);
-            if (!file1.is_open()) {
-                cout << "error" << endl;
-                return false;
-            }
-            while (getline(file1, str)) {
-                text = text + str + "\n";
-
-            }
-            file1.close();
-            ofstream file(filename);
+            ofstream file(filename, std::ios::app);
             if (!file.is_open()) {
                 cout << "error" << endl;
                 return false;
             }
-            file << text;
-            file << t->tm_mon + 1 << "\t" << t->tm_mday << "\t" << to_string(i) << "\t";
-            text = "";
+            file << t->tm_mon + 1 << "\t" << t->tm_mday << "\t" << to_string(i) << "\n";
             file.close();
         }
-        
     }
 
     int getToken(int i) {
@@ -205,9 +200,7 @@ public:
 private:
     int sale[4] = {0,0,0,0};
     int token[4] = {};
-    string text;
     string filename;
-    string line;
     string str;
 };
 
@@ -509,15 +502,15 @@ int main()
     machine machine;
     int menu;
 
-    MoneyFileModifier file ("money.txt");
-    file.appendText();
-    machine.getMoney()[0] = file.getToken(0);
-    machine.getMoney()[1] = file.getToken(1);
-    machine.getMoney()[2] = file.getToken(2);
-    machine.getMoney()[3] = file.getToken(3);
+    MoneyFileModifier moneyFile ("money.txt");
+    moneyFile.appendText();
+    machine.getMoney()[0] = moneyFile.getToken(0);
+    machine.getMoney()[1] = moneyFile.getToken(1);
+    machine.getMoney()[2] = moneyFile.getToken(2);
+    machine.getMoney()[3] = moneyFile.getToken(3);
 
 
-    salesFileModifier file1("sales.txt");
+    salesFileModifier sales("sales.txt");
 
     
     time_t timer = time(NULL);
@@ -540,7 +533,7 @@ int main()
             break;
         case 2:
             cout << endl;
-            file1.putText(machine.custMoney());
+            sales.saveSale(machine.custMoney());
             break;
         case 3:
             cout << endl;
@@ -549,19 +542,19 @@ int main()
         case 4:
             cout << endl;
             cout << t->tm_mon+1 << "월" << t->tm_mday << "일 매출현황" << endl;
-            file1.Day();
+            sales.reportTodaySales();
             break;
         case 5:
             cout << endl;
             int mon;
             cout << "몇월달 보고서를 출력하시겠습니까?" << endl;
             cin >> mon;
-            file1.month(mon);
+            sales.reportMonthSales(mon);
             break;
         case 6:
             cout << endl;
-            file.clearText();
-            file.putText(machine.getMoney());
+            moneyFile.clearText();
+            moneyFile.putText(machine.getMoney());
             cout << "종료합니다." << endl;
             break;
         default:
